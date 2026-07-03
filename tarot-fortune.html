@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✨ 신비의 타로 — 오늘의 운세</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #c9a84c;
+  --gold-light: #e8c66a;
+  --gold-dim: #7a5a1a;
+  --bg-deep: #080414;
+  --bg-mid: #100820;
+  --purple-glow: rgba(120, 40, 200, 0.15);
+  --text-bright: #f5e6c8;
+  --text-mid: #c8a87a;
+  --text-dim: #6a4e2a;
+  --border-gold: 1px solid rgba(201, 168, 76, 0.35);
+  --border-gold-strong: 1px solid rgba(201, 168, 76, 0.65);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  min-height: 100%;
+  font-family: 'Noto Serif KR', 'Georgia', serif;
+  background: var(--bg-deep);
+  color: var(--text-bright);
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(80, 20, 160, 0.25) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 80%, rgba(40, 10, 100, 0.2) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#starCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.screen {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 20px 60px;
+}
+.screen.active { display: flex; }
+
+/* ── Divider ── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 680px;
+  margin: 18px 0;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(201,168,76,0.5), transparent);
+}
+.divider span { color: var(--gold); font-size: 1.1em; }
+
+/* ── Card Box (form containers) ── */
+.card-box {
+  background: rgba(15, 8, 30, 0.85);
+  border: var(--border-gold);
+  border-radius: 18px;
+  padding: 32px;
+  width: 100%;
+  max-width: 480px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(201,168,76,0.1);
+}
+
+/* ═══════════════════════════
+   SETUP SCREEN
+═══════════════════════════ */
+#screen-setup {
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.orb {
+  font-size: 4em;
+  filter: drop-shadow(0 0 24px rgba(160,80,255,0.7)) drop-shadow(0 0 48px rgba(100,40,200,0.4));
+  animation: orbPulse 3s ease-in-out infinite;
+  margin-bottom: 10px;
+}
+@keyframes orbPulse {
+  0%,100% { filter: drop-shadow(0 0 24px rgba(160,80,255,0.7)) drop-shadow(0 0 48px rgba(100,40,200,0.4)); }
+  50%      { filter: drop-shadow(0 0 36px rgba(180,100,255,0.9)) drop-shadow(0 0 72px rgba(120,60,220,0.6)); }
+}
+
+.app-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.6rem, 5vw, 2.8rem);
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(201,168,76,0.5), 0 0 60px rgba(201,168,76,0.2);
+  letter-spacing: 2px;
+  line-height: 1.3;
+}
+.app-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  letter-spacing: 4px;
+  margin-bottom: 28px;
+  margin-top: 4px;
+}
+
+.card-box h2 {
+  font-size: 0.95rem;
+  color: var(--gold);
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+.input-group { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; }
+.input-group label { font-size: 0.82rem; color: var(--text-mid); letter-spacing: 1px; }
+
+.mystic-input {
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: 10px;
+  color: var(--text-bright);
+  font-family: 'Noto Serif KR', serif;
+  font-size: 0.95rem;
+  padding: 12px 16px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  -webkit-appearance: none;
+}
+.mystic-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 14px rgba(201,168,76,0.2);
+}
+.mystic-input::placeholder { color: var(--text-dim); }
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.6) sepia(0.8) hue-rotate(5deg) brightness(1.2);
+  cursor: pointer;
+}
+input[type="date"], input[type="time"] { color-scheme: dark; }
+
+.optional-badge {
+  font-size: 0.65rem;
+  background: rgba(201,168,76,0.12);
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 4px;
+  color: var(--gold);
+  padding: 1px 6px;
+  margin-left: 6px;
+}
+
+.hint {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin-top: 4px;
+}
+
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  cursor: pointer;
+  user-select: none;
+  width: fit-content;
+}
+.remember-row input[type="checkbox"] {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid rgba(201,168,76,0.45);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s;
+}
+.remember-row input[type="checkbox"]:checked {
+  background: rgba(201,168,76,0.2);
+  border-color: rgba(201,168,76,0.9);
+}
+.remember-row input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--gold);
+  line-height: 14px;
+  text-align: center;
+}
+.remember-row span {
+  font-size: 0.75rem;
+  color: var(--text-mid);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3d1f00, #7a4a00, #5a3200);
+  border: var(--border-gold-strong);
+  border-radius: 10px;
+  color: var(--text-bright);
+  cursor: pointer;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 14px 32px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 4px;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0.5s;
+}
+.btn-primary:hover { box-shadow: 0 0 24px rgba(201,168,76,0.35); transform: translateY(-1px); }
+.btn-primary:hover::after { transform: translateX(100%); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 8px;
+  color: var(--text-mid);
+  cursor: pointer;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 0.82rem;
+  padding: 9px 22px;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+.btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+.error-msg {
+  background: rgba(160,20,20,0.2);
+  border: 1px solid rgba(200,60,60,0.4);
+  border-radius: 8px;
+  color: #f87171;
+  font-size: 0.82rem;
+  padding: 10px 14px;
+  text-align: center;
+  display: none;
+  margin-bottom: 10px;
+}
+.error-msg.show { display: block; }
+
+/* ═══════════════════════════
+   BIRTH SCREEN
+═══════════════════════════ */
+#screen-birth {
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.screen-title { text-align: center; }
+.screen-title .icon { font-size: 2.5em; margin-bottom: 10px; filter: drop-shadow(0 0 16px rgba(201,168,76,0.5)); }
+.screen-title h1 { font-size: 1.4rem; color: var(--gold); margin-bottom: 6px; }
+.screen-title p { font-size: 0.85rem; color: var(--text-mid); }
+
+/* ═══════════════════════════
+   CARDS SCREEN
+═══════════════════════════ */
+#screen-cards {
+  align-items: center;
+  gap: 20px;
+  padding-top: 40px;
+}
+
+.cards-instruction { text-align: center; }
+.cards-instruction strong {
+  display: block;
+  font-size: 1.25rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+  text-shadow: 0 0 20px rgba(201,168,76,0.4);
+}
+.cards-instruction p { font-size: 0.88rem; color: var(--text-mid); line-height: 1.7; }
+
+/* ═══════════════════════════
+   DECK STACK
+═══════════════════════════ */
+.deck-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 0;
+}
+
+.fan-container {
+  position: relative;
+  width: min(500px, 98vw);
+  height: 260px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+/* 투명한 팔 — 축을 중심으로 회전, 실제 카드는 팔 끝에 위치 */
+.fan-arm {
+  position: absolute;
+  width: 62px;
+  height: 280px;   /* 반경 = 팔 길이 */
+  bottom: 0;
+  left: 50%;
+  margin-left: -31px;
+  transform-origin: bottom center;
+  transform: rotate(var(--rot));
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 팔 끝의 실제 카드 면 */
+.fan-card {
+  width: 100%;
+  height: 109px;   /* 카드 비율 2:3.5 → 62×109 */
+  border-radius: 9px;
+  background: linear-gradient(155deg, #200a3e 0%, #0d061e 55%, #1a0830 100%);
+  border: 1.5px solid rgba(201,168,76,0.38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.2,0.9,0.3,1.25),
+              border-color 0.25s, box-shadow 0.25s;
+}
+.fan-card::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(201,168,76,0.1);
+  border-radius: 5px;
+  background: repeating-linear-gradient(
+    45deg, transparent, transparent 6px,
+    rgba(201,168,76,0.03) 6px, rgba(201,168,76,0.03) 12px
+  );
+  pointer-events: none;
+}
+.fan-card-sym {
+  font-size: 1.5em;
+  color: rgba(201,168,76,0.45);
+  z-index: 1;
+  transition: color 0.25s, text-shadow 0.25s, transform 0.25s;
+  pointer-events: none;
+}
+
+.fan-arm:hover {
+  z-index: 30 !important;
+}
+.fan-arm:hover .fan-card {
+  transform: translateY(-22px) scale(1.08);
+  border-color: rgba(201,168,76,0.95);
+  box-shadow: 0 0 32px rgba(201,168,76,0.58), 0 10px 28px rgba(0,0,0,0.75);
+}
+.fan-arm:hover .fan-card-sym {
+  color: var(--gold-light);
+  text-shadow: 0 0 18px rgba(201,168,76,0.85);
+  transform: scale(1.1);
+}
+
+.deck-hint {
+  font-size: 0.78rem;
+  color: var(--text-mid);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: hintPulse 3s ease-in-out infinite;
+}
+@keyframes hintPulse {
+  0%,100% { opacity: 0.35; }
+  50%      { opacity: 0.9; }
+}
+@media (max-width: 480px) {
+  .fan-arm  { width: 52px; height: 230px; margin-left: -26px; }
+  .fan-card { height: 91px; }
+}
+
+/* ═══════════════════════════
+   CARD REVEAL OVERLAY
+═══════════════════════════ */
+#cardRevealOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(4,1,12,0.92);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+#cardRevealOverlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.reveal-wrap { perspective: 1300px; }
+
+.reveal-card {
+  width: min(210px, 52vw);
+  aspect-ratio: 2 / 3.5;
+  position: relative;
+  transform-style: preserve-3d;
+}
+.reveal-card.do-flip {
+  animation: bigRevealFlip 1.15s cubic-bezier(0.38, 0, 0.12, 1) forwards;
+}
+@keyframes bigRevealFlip {
+  0%   { transform: scale(0.2) rotateY(0deg);   opacity: 0; }
+  12%  { opacity: 1; }
+  44%  { transform: scale(1.0) rotateY(90deg); }
+  56%  { transform: scale(1.1) rotateY(90deg); }
+  86%  { transform: scale(0.97) rotateY(180deg); }
+  100% { transform: scale(1)   rotateY(180deg); }
+}
+
+.reveal-back, .reveal-front {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  backface-visibility: hidden;
+  border: 2px solid var(--gold);
+}
+.reveal-back {
+  background: linear-gradient(145deg, #200a3e, #090316, #180630);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.8em;
+  color: rgba(201,168,76,0.6);
+  box-shadow: 0 0 50px rgba(201,168,76,0.18), 0 12px 45px rgba(0,0,0,0.85);
+}
+.reveal-back::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(201,168,76,0.13);
+  border-radius: 9px;
+  background: repeating-linear-gradient(
+    45deg, transparent, transparent 9px,
+    rgba(201,168,76,0.03) 9px, rgba(201,168,76,0.03) 18px
+  );
+}
+.reveal-front {
+  transform: rotateY(180deg);
+  overflow: hidden;
+  box-shadow: 0 0 65px rgba(201,168,76,0.5), 0 22px 65px rgba(0,0,0,0.9);
+}
+.reveal-front img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.reveal-front.reversed img { transform: rotate(180deg); }
+
+.reveal-card-name {
+  font-size: 1.25rem;
+  color: var(--gold);
+  text-align: center;
+  letter-spacing: 1px;
+  text-shadow: 0 0 18px rgba(201,168,76,0.4);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.5s, transform 0.5s;
+}
+.reveal-card-name.visible { opacity: 1; transform: translateY(0); }
+
+.reveal-sub {
+  font-size: 0.82rem;
+  color: var(--text-mid);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.reveal-sub.visible { opacity: 1; }
+
+.reveal-proceed {
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.reveal-proceed.visible { opacity: 1; }
+
+/* Sparkle particles */
+.spark {
+  position: fixed;
+  pointer-events: none;
+  z-index: 600;
+  animation: sparkFly var(--d) ease-out forwards;
+  font-size: var(--s);
+  line-height: 1;
+  transform-origin: center;
+}
+@keyframes sparkFly {
+  0%   { transform: translate(0,0) scale(0) rotate(0deg); opacity: 1; }
+  50%  { opacity: 1; }
+  100% { transform: translate(var(--x),var(--y)) scale(1.3) rotate(var(--r)); opacity: 0; }
+}
+
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+/* ═══════════════════════════
+   LOADING SCREEN
+═══════════════════════════ */
+#screen-loading {
+  justify-content: center;
+  align-items: center;
+  gap: 28px;
+  text-align: center;
+}
+
+.crystal {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 32%, rgba(200,130,255,0.85), rgba(60,15,110,0.95) 65%, rgba(8,4,24,1));
+  box-shadow: 0 0 50px rgba(160,80,255,0.65), 0 0 100px rgba(100,40,200,0.3), inset 0 0 40px rgba(0,0,0,0.6);
+  position: relative;
+  overflow: hidden;
+  animation: crystalPulse 2.5s ease-in-out infinite;
+}
+.crystal::before {
+  content: '';
+  position: absolute;
+  top: 12%; left: 18%;
+  width: 32%; height: 18%;
+  background: rgba(255,255,255,0.18);
+  border-radius: 50%;
+  filter: blur(4px);
+}
+.crystal::after {
+  content: '✦';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-size: 2.2em;
+  color: rgba(255,255,255,0.45);
+  animation: spinStar 5s linear infinite;
+}
+@keyframes crystalPulse {
+  0%,100% { box-shadow: 0 0 50px rgba(160,80,255,0.65), 0 0 100px rgba(100,40,200,0.3); }
+  50%      { box-shadow: 0 0 70px rgba(180,100,255,0.85), 0 0 140px rgba(120,60,220,0.5); }
+}
+@keyframes spinStar {
+  from { transform: translate(-50%,-50%) rotate(0deg); }
+  to   { transform: translate(-50%,-50%) rotate(360deg); }
+}
+
+.loading-title { font-size: 1.3rem; color: var(--gold); letter-spacing: 1px; }
+.loading-sub {
+  font-size: 1.05rem;
+  color: var(--text-mid);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+/* ═══════════════════════════
+   RESULTS SCREEN
+═══════════════════════════ */
+#screen-results {
+  align-items: center;
+  gap: 16px;
+  padding-top: 40px;
+  padding-bottom: 80px;
+}
+
+.result-date  { font-size: 0.78rem; color: var(--text-dim); letter-spacing: 3px; text-align: center; }
+.result-title { font-size: 1.5rem; color: var(--gold); text-align: center; margin-top: 2px;
+                text-shadow: 0 0 20px rgba(201,168,76,0.35); }
+
+/* Astro pills */
+.astro-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 680px;
+}
+.astro-pill {
+  background: rgba(80,20,160,0.2);
+  border: 1px solid rgba(120,50,200,0.35);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 0.78rem;
+  color: #c084fc;
+  white-space: nowrap;
+}
+
+/* Tarot card result display */
+.result-card-panel {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 680px;
+  background: rgba(15,8,30,0.8);
+  border: var(--border-gold);
+  border-radius: 16px;
+  padding: 22px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+}
+@media (max-width: 480px) {
+  .result-card-panel { flex-direction: column; align-items: center; }
+}
+
+.result-card-img {
+  width: 110px;
+  min-width: 110px;
+  aspect-ratio: 2/3.5;
+  border: 1.5px solid var(--gold);
+  border-radius: 9px;
+  overflow: hidden;
+  box-shadow: 0 0 28px rgba(201,168,76,0.3), 0 8px 24px rgba(0,0,0,0.5);
+  background: #0a0215;
+  transition: transform 0.3s;
+}
+.result-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 7px;
+}
+.result-card-img.reversed img { transform: rotate(180deg); }
+.rci-sym  { font-size: 2.2em; }
+.rci-name { font-size: 0.6em; color: var(--gold); text-align: center; font-weight: 700; line-height: 1.2; }
+
+.result-card-info { flex: 1; }
+.result-card-info h3 { font-size: 1.1rem; color: var(--gold); margin-bottom: 6px; }
+.result-card-info .card-type { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 10px; }
+.result-card-info .card-kw {
+  font-size: 0.78rem;
+  color: var(--text-mid);
+  background: rgba(201,168,76,0.07);
+  border: 1px solid rgba(201,168,76,0.15);
+  border-radius: 6px;
+  padding: 7px 10px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+.result-card-info .card-advice {
+  font-size: 0.84rem;
+  color: var(--text-bright);
+  font-style: italic;
+  line-height: 1.7;
+}
+.rev-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  background: rgba(180,40,40,0.2);
+  border: 1px solid rgba(220,80,80,0.4);
+  border-radius: 4px;
+  color: #f87171;
+  padding: 1px 7px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* Fortune grid */
+.fortune-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  width: 100%;
+  max-width: 680px;
+}
+@media (max-width: 480px) { .fortune-grid { grid-template-columns: 1fr; } }
+
+.fortune-section {
+  background: rgba(15,8,30,0.8);
+  border: var(--border-gold);
+  border-radius: 14px;
+  padding: 20px;
+  backdrop-filter: blur(12px);
+  transition: box-shadow 0.2s;
+}
+.fortune-section:hover { box-shadow: 0 0 20px rgba(201,168,76,0.12); }
+.fortune-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.9rem;
+  color: var(--gold);
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+.fortune-section p { font-size: 0.84rem; color: var(--text-bright); line-height: 1.85; }
+
+.fortune-overall {
+  grid-column: 1 / -1;
+  background: rgba(20,8,45,0.9);
+  border-color: rgba(201,168,76,0.55);
+  box-shadow: 0 0 30px rgba(201,168,76,0.08);
+}
+.fortune-overall p { font-size: 0.88rem; }
+
+/* Lucky row */
+.lucky-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 680px;
+}
+.lucky-item {
+  background: rgba(15,8,30,0.8);
+  border: var(--border-gold);
+  border-radius: 12px;
+  padding: 12px 18px;
+  text-align: center;
+  flex: 1;
+  min-width: 90px;
+}
+.lucky-label { display: block; font-size: 0.66rem; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 5px; }
+.lucky-value { font-size: 1rem; color: var(--gold); font-weight: 700; }
+
+/* ═══════════════════════════
+   회사에서의 오늘 하루
+═══════════════════════════ */
+.agency-section {
+  width: 100%;
+  max-width: 680px;
+}
+.agency-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.agency-header h2 {
+  font-size: 1.05rem;
+  color: #a0c4ff;
+  letter-spacing: 1px;
+  text-shadow: 0 0 18px rgba(120,180,255,0.35);
+}
+.agency-overall {
+  background: rgba(15,8,30,0.85);
+  border: 1.5px solid rgba(201,168,76,0.32);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  font-size: 0.87rem;
+  color: #c8dcff;
+  line-height: 1.85;
+  box-shadow: 0 0 22px rgba(201,168,76,0.06);
+}
+.agency-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 480px) { .agency-grid { grid-template-columns: 1fr; } }
+
+.agency-card {
+  background: rgba(12,8,28,0.82);
+  border: 1px solid rgba(201,168,76,0.28);
+  border-radius: 12px;
+  padding: 16px;
+  transition: box-shadow 0.2s;
+}
+.agency-card:hover { box-shadow: 0 0 18px rgba(201,168,76,0.12); }
+.agency-card h3 {
+  font-size: 0.82rem;
+  color: #90b8ff;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.3px;
+}
+.agency-card p { font-size: 0.82rem; color: #c8dcff; line-height: 1.82; }
+
+.agency-tip {
+  grid-column: 1 / -1;
+  background: rgba(15,8,30,0.9);
+  border: 1.5px solid rgba(201,168,76,0.45);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 0 20px rgba(201,168,76,0.08);
+}
+.agency-tip-title {
+  font-size: 0.82rem;
+  color: #a0c4ff;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.agency-tip-text {
+  font-size: 0.94rem;
+  color: #c8dcff;
+  line-height: 1.8;
+  font-style: italic;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<canvas id="starCanvas"></canvas>
+
+<!-- ════════════ SCREEN 1: INTRO ════════════ -->
+<div id="screen-setup" class="screen active">
+  <div class="orb">🔮</div>
+  <h1 class="app-title">신비의 타로</h1>
+  <p class="app-subtitle">✦ 오늘의 운세 ✦</p>
+  <button class="btn-primary" onclick="showScreen('screen-birth')" style="margin-top:16px">✨ 시작하기</button>
+</div>
+
+<!-- ════════════ SCREEN 2: BIRTH INFO ════════════ -->
+<div id="screen-birth" class="screen">
+  <div class="screen-title">
+    <div class="icon">🌙</div>
+    <h1>당신의 정보를 알려주세요</h1>
+    <p>별자리와 사주를 계산합니다</p>
+  </div>
+
+  <div class="divider"><span>✦</span></div>
+
+  <div class="card-box">
+    <div class="input-group">
+      <label>생년월일 <span style="color:#f87171">*</span></label>
+      <input type="date" id="birthDateInput" class="mystic-input" />
+    </div>
+    <div class="input-group">
+      <label>태어난 시간 <span class="optional-badge">선택</span></label>
+      <input type="time" id="birthTimeInput" class="mystic-input" />
+      <p class="hint">시간을 입력하면 시주(時柱)까지 포함한 더 정확한 사주 해석이 가능합니다</p>
+    </div>
+    <label class="remember-row">
+      <input type="checkbox" id="rememberBirth" onchange="toggleRemember(this.checked)">
+      <span>입력 정보 기억</span>
+    </label>
+    <div id="birthError" class="error-msg"></div>
+    <button class="btn-primary" onclick="handleBirth()" style="margin-top:20px">🃏 카드 고르러 가기</button>
+  </div>
+
+</div>
+
+<!-- ════════════ SCREEN 3: CARD SELECTION ════════════ -->
+<div id="screen-cards" class="screen">
+  <div class="cards-instruction">
+    <strong>✨ 카드를 한 장 뽑으세요</strong>
+    <p>마음을 고요히 하고 오늘의 에너지를 느끼며<br>덱에서 당신에게 이끌리는 카드를 뽑아보세요</p>
+  </div>
+
+  <div class="divider"><span>✦</span></div>
+
+  <div class="deck-area">
+    <div class="fan-container" id="fanContainer"></div>
+    <p class="deck-hint">원하는 카드를 선택하세요</p>
+  </div>
+
+  <button class="btn-secondary" onclick="showScreen('screen-birth')">← 뒤로</button>
+</div>
+
+<!-- CARD REVEAL OVERLAY -->
+<div id="cardRevealOverlay">
+  <div class="reveal-wrap">
+    <div class="reveal-card" id="revealCard">
+      <div class="reveal-back">✦</div>
+      <div class="reveal-front" id="revealFront"></div>
+    </div>
+  </div>
+  <p class="reveal-card-name" id="revealCardName"></p>
+  <p class="reveal-sub" id="revealSub"></p>
+  <button class="btn-primary reveal-proceed" id="revealProceedBtn" onclick="proceedToFortune()">✨ 운세 보기</button>
+</div>
+
+<!-- ════════════ SCREEN 4: LOADING ════════════ -->
+<div id="screen-loading" class="screen">
+  <div class="crystal"></div>
+  <p class="loading-title">별들이 당신의 운명을 읽고 있습니다</p>
+  <p class="loading-sub" id="loadingText">사주를 계산하는 중...</p>
+</div>
+
+<!-- ════════════ SCREEN 5: RESULTS ════════════ -->
+<div id="screen-results" class="screen">
+  <p class="result-date" id="resultDate"></p>
+  <h2 class="result-title">✨ 오늘의 운세</h2>
+
+  <div class="astro-bar" id="astroBar"></div>
+
+  <div class="divider"><span>✦</span></div>
+
+  <div class="result-card-panel" id="resultCardPanel"></div>
+
+  <div class="divider"><span>✦</span></div>
+
+  <div class="fortune-grid" id="fortuneGrid"></div>
+
+  <div class="divider"><span>✦</span></div>
+
+  <div class="agency-section" id="agencySection"></div>
+
+  <div class="divider"><span>✦</span></div>
+
+  <div class="lucky-row" id="luckyRow"></div>
+
+  <div class="btn-row" style="margin-top:24px">
+    <button class="btn-secondary" onclick="newReading()">🔮 다시 뽑기</button>
+    <button class="btn-secondary" onclick="editBirthInfo()">✏️ 정보 수정</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   STAR ANIMATION
+═══════════════════════════════════════════════ */
+const canvas = document.getElementById('starCanvas');
+const ctx    = canvas.getContext('2d');
+let stars    = [];
+
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+function initStars() {
+  stars = Array.from({ length: 200 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.3 + 0.2,
+    a: Math.random(),
+    da: (Math.random() * 0.007 + 0.002) * (Math.random() < 0.5 ? 1 : -1),
+    gold: Math.random() < 0.15,
+  }));
+}
+function animateStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(s => {
+    s.a += s.da;
+    if (s.a >= 1 || s.a <= 0) s.da *= -1;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = s.gold
+      ? `rgba(201,168,76,${s.a * 0.8})`
+      : `rgba(245,230,210,${s.a * 0.7})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(animateStars);
+}
+resizeCanvas(); initStars(); animateStars();
+window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
+
+/* ═══════════════════════════════════════════════
+   IMAGE URL MAPPING (sacred-texts.com · public domain Rider-Waite 1909)
+═══════════════════════════════════════════════ */
+const IMG_BASE = 'https://www.sacred-texts.com/tarot/pkt/img/';
+// 78 codes in card-id order (0-21 Major, 22-35 Wands, 36-49 Cups, 50-63 Swords, 64-77 Pentacles)
+const CARD_CODES = [
+  'ar00','ar01','ar02','ar03','ar04','ar05','ar06','ar07','ar08','ar09','ar10','ar11',
+  'ar12','ar13','ar14','ar15','ar16','ar17','ar18','ar19','ar20','ar21',
+  'waac','wa02','wa03','wa04','wa05','wa06','wa07','wa08','wa09','wa10','wapa','wakn','waqu','waki',
+  'cuac','cu02','cu03','cu04','cu05','cu06','cu07','cu08','cu09','cu10','cupa','cukn','cuqu','cuki',
+  'swac','sw02','sw03','sw04','sw05','sw06','sw07','sw08','sw09','sw10','swpa','swkn','swqu','swki',
+  'peac','pe02','pe03','pe04','pe05','pe06','pe07','pe08','pe09','pe10','pepa','pekn','pequ','peki',
+];
+function cardImg(card) { return IMG_BASE + CARD_CODES[card.id] + '.jpg'; }
+
+/* ═══════════════════════════════════════════════
+   78-CARD TAROT DECK
+═══════════════════════════════════════════════ */
+const TAROT = [
+  // ─── MAJOR ARCANA ───
+  {id:0,  name:'바보',           en:'The Fool',            type:'메이저', sym:'🃏', up:'새로운 시작·순수한 도전·자유',            rev:'경솔함·무모한 행동·위험한 도약'},
+  {id:1,  name:'마법사',         en:'The Magician',        type:'메이저', sym:'🪄', up:'의지력·창조력·기술과 능력의 발현',         rev:'기만·능력 낭비·잘못된 방향'},
+  {id:2,  name:'여사제',         en:'The High Priestess',  type:'메이저', sym:'🌙', up:'직관·신비로운 지혜·내면의 목소리',         rev:'비밀·억압된 감정·혼란'},
+  {id:3,  name:'여황제',         en:'The Empress',         type:'메이저', sym:'🌸', up:'풍요·창의성·모성적 사랑',                  rev:'의존·창의력 차단·과잉보호'},
+  {id:4,  name:'황제',           en:'The Emperor',         type:'메이저', sym:'👑', up:'권위·안정·리더십',                         rev:'독재·경직·통제 상실'},
+  {id:5,  name:'교황',           en:'The Hierophant',      type:'메이저', sym:'⛪', up:'전통·정신적 지도·조언',                    rev:'관습 탈피·독단·잘못된 조언'},
+  {id:6,  name:'연인들',         en:'The Lovers',          type:'메이저', sym:'💞', up:'사랑·조화·중요한 선택',                    rev:'불화·우유부단·가치관 충돌'},
+  {id:7,  name:'전차',           en:'The Chariot',         type:'메이저', sym:'🏆', up:'승리·자기통제·결단력',                     rev:'방향 상실·통제력 부족·충동'},
+  {id:8,  name:'힘',             en:'Strength',            type:'메이저', sym:'🦁', up:'용기·인내·내면의 강인함',                  rev:'약함·자기 의심·에너지 고갈'},
+  {id:9,  name:'은둔자',         en:'The Hermit',          type:'메이저', sym:'🕯️', up:'내면 탐구·지혜·고독의 시간',              rev:'고립·외로움·현실 도피'},
+  {id:10, name:'운명의 바퀴',    en:'Wheel of Fortune',    type:'메이저', sym:'☸️', up:'행운·전환점·운명의 흐름',                  rev:'불운·저항·변화 거부'},
+  {id:11, name:'정의',           en:'Justice',             type:'메이저', sym:'⚖️', up:'공정·진실·균형',                           rev:'불공평·편견·책임 회피'},
+  {id:12, name:'매달린 사람',    en:'The Hanged Man',      type:'메이저', sym:'🙃', up:'내려놓음·새로운 시각·희생',                rev:'지연·집착·순교'},
+  {id:13, name:'죽음',           en:'Death',               type:'메이저', sym:'🌑', up:'변화·끝과 시작·탈바꿈',                    rev:'변화 저항·정체·미완성'},
+  {id:14, name:'절제',           en:'Temperance',          type:'메이저', sym:'🌊', up:'균형·조화·인내',                           rev:'과잉·불균형·충동적 행동'},
+  {id:15, name:'악마',           en:'The Devil',           type:'메이저', sym:'⛓️', up:'속박·물질적 욕망·그림자',                  rev:'해방·족쇄를 끊음·자각'},
+  {id:16, name:'탑',             en:'The Tower',           type:'메이저', sym:'⚡', up:'갑작스러운 변화·혼돈·각성',                rev:'재난 회피·변화 지연·내부 변혁'},
+  {id:17, name:'별',             en:'The Star',            type:'메이저', sym:'⭐', up:'희망·영감·치유',                           rev:'희망 상실·실망·자기 불신'},
+  {id:18, name:'달',             en:'The Moon',            type:'메이저', sym:'🌕', up:'환상·두려움·무의식',                       rev:'혼란 해소·비밀 드러남·명확함'},
+  {id:19, name:'태양',           en:'The Sun',             type:'메이저', sym:'☀️', up:'행복·성공·활력',                           rev:'슬픔·과도한 낙관·지연'},
+  {id:20, name:'심판',           en:'Judgement',           type:'메이저', sym:'📯', up:'각성·새로운 소명·과거 청산',               rev:'자기 의심·후회·잘못된 판단'},
+  {id:21, name:'세계',           en:'The World',           type:'메이저', sym:'🌍', up:'완성·성취·통합',                           rev:'미완성·지연·외부 의존'},
+  // ─── WANDS ───
+  {id:22, name:'완드 에이스',    en:'Ace of Wands',        type:'완드', sym:'🔥', up:'열정의 불꽃·새로운 도전·창의 에너지',        rev:'열정 소진·잘못된 시작·지연'},
+  {id:23, name:'완드 2',         en:'Two of Wands',        type:'완드', sym:'🔥', up:'계획·미래 전망·모험 준비',                   rev:'두려움·의존·계획 부재'},
+  {id:24, name:'완드 3',         en:'Three of Wands',      type:'완드', sym:'🔥', up:'확장·비전·새로운 기회',                      rev:'장애물·지연·예상 밖의 결과'},
+  {id:25, name:'완드 4',         en:'Four of Wands',       type:'완드', sym:'🔥', up:'축하·안정·커뮤니티',                         rev:'불안정·긴장·불완전한 기쁨'},
+  {id:26, name:'완드 5',         en:'Five of Wands',       type:'완드', sym:'🔥', up:'갈등·경쟁·도전',                             rev:'내적 갈등·회피·소모적 논쟁'},
+  {id:27, name:'완드 6',         en:'Six of Wands',        type:'완드', sym:'🔥', up:'승리·인정·성취',                             rev:'자만·지연된 성공·무시'},
+  {id:28, name:'완드 7',         en:'Seven of Wands',      type:'완드', sym:'🔥', up:'방어·결단력·끈기',                           rev:'불안·항복·압도됨'},
+  {id:29, name:'완드 8',         en:'Eight of Wands',      type:'완드', sym:'🔥', up:'빠른 행동·소식·움직임',                      rev:'지연·좌절·혼란'},
+  {id:30, name:'완드 9',         en:'Nine of Wands',       type:'완드', sym:'🔥', up:'회복력·끈기·방어',                           rev:'고집·과보호·의심'},
+  {id:31, name:'완드 10',        en:'Ten of Wands',        type:'완드', sym:'🔥', up:'부담·책임감·압박',                           rev:'과부하·해방·위임의 필요'},
+  {id:32, name:'완드 시종',      en:'Page of Wands',       type:'완드', sym:'🔥', up:'탐험·자유로운 열정·영감',                    rev:'추진력 부족·경솔함·방향 상실'},
+  {id:33, name:'완드 기사',      en:'Knight of Wands',     type:'완드', sym:'🔥', up:'에너지·행동·모험',                           rev:'충동·좌절·무모함'},
+  {id:34, name:'완드 여왕',      en:'Queen of Wands',      type:'완드', sym:'🔥', up:'자신감·독립성·카리스마',                     rev:'질투·자기중심·의존성'},
+  {id:35, name:'완드 왕',        en:'King of Wands',       type:'완드', sym:'🔥', up:'리더십·비전·기업가 정신',                    rev:'충동적·독재·무모함'},
+  // ─── CUPS ───
+  {id:36, name:'컵 에이스',      en:'Ace of Cups',         type:'컵', sym:'💧', up:'새로운 감정·사랑의 시작·직관',                 rev:'감정 억압·불안정·차단'},
+  {id:37, name:'컵 2',           en:'Two of Cups',         type:'컵', sym:'💧', up:'연결·화합·파트너십',                           rev:'단절·불균형·관계 긴장'},
+  {id:38, name:'컵 3',           en:'Three of Cups',       type:'컵', sym:'💧', up:'축하·우정·공동체',                             rev:'과잉·고립·소문'},
+  {id:39, name:'컵 4',           en:'Four of Cups',        type:'컵', sym:'💧', up:'묵상·무관심·재평가',                           rev:'새로운 기회·동기 부여·각성'},
+  {id:40, name:'컵 5',           en:'Five of Cups',        type:'컵', sym:'💧', up:'상실·후회·슬픔',                               rev:'회복·용서·희망'},
+  {id:41, name:'컵 6',           en:'Six of Cups',         type:'컵', sym:'💧', up:'향수·순수함·어린 시절의 기억',                 rev:'과거 집착·나이브함'},
+  {id:42, name:'컵 7',           en:'Seven of Cups',       type:'컵', sym:'💧', up:'환상·꿈·선택의 혼란',                          rev:'현실적·명확성·선택 완료'},
+  {id:43, name:'컵 8',           en:'Eight of Cups',       type:'컵', sym:'💧', up:'떠남·실망·더 높은 것 추구',                    rev:'방황·표류·두려움에 머묾'},
+  {id:44, name:'컵 9',           en:'Nine of Cups',        type:'컵', sym:'💧', up:'소원 성취·만족·행복',                          rev:'불만족·물질주의·욕심'},
+  {id:45, name:'컵 10',          en:'Ten of Cups',         type:'컵', sym:'💧', up:'가족의 행복·조화·영원한 사랑',                 rev:'불화·가치 불일치·파괴적 관계'},
+  {id:46, name:'컵 시종',        en:'Page of Cups',        type:'컵', sym:'💧', up:'창의적 기회·직관·감성',                        rev:'감정 억압·유아적·비현실적'},
+  {id:47, name:'컵 기사',        en:'Knight of Cups',      type:'컵', sym:'💧', up:'로맨스·매력·상상력',                           rev:'질투·기분 변화·비현실적'},
+  {id:48, name:'컵 여왕',        en:'Queen of Cups',       type:'컵', sym:'💧', up:'공감·돌봄·직관',                               rev:'감정 불안정·자기 희생·의존'},
+  {id:49, name:'컵 왕',          en:'King of Cups',        type:'컵', sym:'💧', up:'감정적 성숙·외교·균형',                        rev:'조종·감정 폭발·억압'},
+  // ─── SWORDS ───
+  {id:50, name:'소드 에이스',    en:'Ace of Swords',       type:'소드', sym:'⚔️', up:'진실·명확함·새로운 아이디어',               rev:'혼란·잘못된 정보·거짓'},
+  {id:51, name:'소드 2',         en:'Two of Swords',       type:'소드', sym:'⚔️', up:'교착 상태·선택 회피·균형',                  rev:'혼란 해소·진실 직면·결정'},
+  {id:52, name:'소드 3',         en:'Three of Swords',     type:'소드', sym:'⚔️', up:'슬픔·배신·가슴앓이',                        rev:'치유·회복·용서'},
+  {id:53, name:'소드 4',         en:'Four of Swords',      type:'소드', sym:'⚔️', up:'휴식·회복·명상',                            rev:'불안·번아웃·행동 복귀'},
+  {id:54, name:'소드 5',         en:'Five of Swords',      type:'소드', sym:'⚔️', up:'갈등·패배·손실',                            rev:'화해·후회·회복'},
+  {id:55, name:'소드 6',         en:'Six of Swords',       type:'소드', sym:'⚔️', up:'이행·새로운 시작·평온',                     rev:'저항·정체·여정 지연'},
+  {id:56, name:'소드 7',         en:'Seven of Swords',     type:'소드', sym:'⚔️', up:'기만·전략·책략',                            rev:'정직·양심·책임 수용'},
+  {id:57, name:'소드 8',         en:'Eight of Swords',     type:'소드', sym:'⚔️', up:'속박·제한·자기 제약',                       rev:'해방·자각·새로운 관점'},
+  {id:58, name:'소드 9',         en:'Nine of Swords',      type:'소드', sym:'⚔️', up:'불안·악몽·걱정',                            rev:'내면 평화 회복·희망의 빛'},
+  {id:59, name:'소드 10',        en:'Ten of Swords',       type:'소드', sym:'⚔️', up:'고통스러운 끝·배신·붕괴',                   rev:'회복·부활·저항'},
+  {id:60, name:'소드 시종',      en:'Page of Swords',      type:'소드', sym:'⚔️', up:'호기심·경계심·새로운 아이디어',             rev:'소문·거짓·충동적 언어'},
+  {id:61, name:'소드 기사',      en:'Knight of Swords',    type:'소드', sym:'⚔️', up:'야망·직접 행동·용기',                       rev:'경솔함·공격성·성급함'},
+  {id:62, name:'소드 여왕',      en:'Queen of Swords',     type:'소드', sym:'⚔️', up:'명석함·독립성·직접성',                      rev:'냉혹함·비판·쓴맛'},
+  {id:63, name:'소드 왕',        en:'King of Swords',      type:'소드', sym:'⚔️', up:'지적 권위·진실·명확한 판단',                rev:'조종·전제적·잔인함'},
+  // ─── PENTACLES ───
+  {id:64, name:'펜타클 에이스',  en:'Ace of Pentacles',    type:'펜타클', sym:'💰', up:'번영·새로운 재정적 시작·물질적 안정',      rev:'낭비·기회 손실·불안정'},
+  {id:65, name:'펜타클 2',       en:'Two of Pentacles',    type:'펜타클', sym:'💰', up:'균형·적응력·멀티태스킹',                   rev:'균형 상실·무질서·압도됨'},
+  {id:66, name:'펜타클 3',       en:'Three of Pentacles',  type:'펜타클', sym:'💰', up:'협력·기술·팀워크',                         rev:'불일치·지식 부족·고집'},
+  {id:67, name:'펜타클 4',       en:'Four of Pentacles',   type:'펜타클', sym:'💰', up:'안정·절약·통제',                           rev:'인색함·물질주의·집착'},
+  {id:68, name:'펜타클 5',       en:'Five of Pentacles',   type:'펜타클', sym:'💰', up:'재정난·결핍·고립',                         rev:'회복·지원·영적 빈곤 극복'},
+  {id:69, name:'펜타클 6',       en:'Six of Pentacles',    type:'펜타클', sym:'💰', up:'관용·나눔·자선',                           rev:'빚·탐욕·불공평한 나눔'},
+  {id:70, name:'펜타클 7',       en:'Seven of Pentacles',  type:'펜타클', sym:'💰', up:'인내·투자·장기적 보상',                    rev:'조급함·수익 없는 노력·실망'},
+  {id:71, name:'펜타클 8',       en:'Eight of Pentacles',  type:'펜타클', sym:'💰', up:'장인 정신·노력·기술 개발',                 rev:'완벽주의·단조로움·동기 부족'},
+  {id:72, name:'펜타클 9',       en:'Nine of Pentacles',   type:'펜타클', sym:'💰', up:'풍요·독립성·자기 충족',                    rev:'재정 손실·의존성·허위 성공'},
+  {id:73, name:'펜타클 10',      en:'Ten of Pentacles',    type:'펜타클', sym:'💰', up:'부의 유산·가족의 안정·완성',               rev:'재정 실패·불화·임시적 성공'},
+  {id:74, name:'펜타클 시종',    en:'Page of Pentacles',   type:'펜타클', sym:'💰', up:'야망·목표·실용적 학습',                    rev:'결핍·게으름·비현실적 목표'},
+  {id:75, name:'펜타클 기사',    en:'Knight of Pentacles', type:'펜타클', sym:'💰', up:'근면·성실·현실적 접근',                    rev:'정체·고집·완벽주의'},
+  {id:76, name:'펜타클 여왕',    en:'Queen of Pentacles',  type:'펜타클', sym:'💰', up:'실용성·돌봄·안락함',                       rev:'자기 중심적·일에 얽매임·질투'},
+  {id:77, name:'펜타클 왕',      en:'King of Pentacles',   type:'펜타클', sym:'💰', up:'부·재정적 안정·사업 감각',                 rev:'물질주의·부패·집착'},
+];
+
+/* ═══════════════════════════════════════════════
+   ASTROLOGY HELPERS
+═══════════════════════════════════════════════ */
+const CHEONGAN = ['갑(甲)','을(乙)','병(丙)','정(丁)','무(戊)','기(己)','경(庚)','신(辛)','임(壬)','계(癸)'];
+const JIJI     = ['자(子)','축(丑)','인(寅)','묘(卯)','진(辰)','사(巳)','오(午)','미(未)','신(申)','유(酉)','술(戌)','해(亥)'];
+const ANIMALS  = ['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
+
+function getZodiac(month, day) {
+  const Z = [
+    { n:'염소자리',   s:'♑', c:(m,d)=> m===1  && d<=19 },
+    { n:'물병자리',   s:'♒', c:(m,d)=> (m===1&&d>=20)||(m===2&&d<=18) },
+    { n:'물고기자리', s:'♓', c:(m,d)=> (m===2&&d>=19)||(m===3&&d<=20) },
+    { n:'양자리',     s:'♈', c:(m,d)=> (m===3&&d>=21)||(m===4&&d<=19) },
+    { n:'황소자리',   s:'♉', c:(m,d)=> (m===4&&d>=20)||(m===5&&d<=20) },
+    { n:'쌍둥이자리', s:'♊', c:(m,d)=> (m===5&&d>=21)||(m===6&&d<=20) },
+    { n:'게자리',     s:'♋', c:(m,d)=> (m===6&&d>=21)||(m===7&&d<=22) },
+    { n:'사자자리',   s:'♌', c:(m,d)=> (m===7&&d>=23)||(m===8&&d<=22) },
+    { n:'처녀자리',   s:'♍', c:(m,d)=> (m===8&&d>=23)||(m===9&&d<=22) },
+    { n:'천칭자리',   s:'♎', c:(m,d)=> (m===9&&d>=23)||(m===10&&d<=22) },
+    { n:'전갈자리',   s:'♏', c:(m,d)=> (m===10&&d>=23)||(m===11&&d<=21) },
+    { n:'사수자리',   s:'♐', c:(m,d)=> (m===11&&d>=22)||(m===12&&d<=21) },
+    { n:'염소자리',   s:'♑', c:(m,d)=> m===12 && d>=22 },
+  ];
+  return Z.find(z => z.c(month, day)) || Z[0];
+}
+
+function getAnimal(year) {
+  return ANIMALS[((year - 1900) % 12 + 12) % 12];
+}
+
+function julianDay(y, m, d) {
+  const a = Math.floor((14 - m) / 12);
+  const Y = y + 4800 - a, M = m + 12*a - 3;
+  return d + Math.floor((153*M+2)/5) + 365*Y +
+         Math.floor(Y/4) - Math.floor(Y/100) + Math.floor(Y/400) - 32045;
+}
+
+function yearPillar(y) {
+  const si = ((y-4)%10+10)%10, bi = ((y-4)%12+12)%12;
+  return CHEONGAN[si] + ' ' + JIJI[bi];
+}
+
+function dayPillar(y, m, d) {
+  const jd   = julianDay(y, m, d);
+  const diff = jd - 2451545; // ref: Jan 1 2000 = 甲午
+  const si   = ((diff%10)+10)%10;
+  const bi   = (((diff+6)%12)+12)%12;
+  return CHEONGAN[si] + ' ' + JIJI[bi];
+}
+
+function hourPillar(h) {
+  const bi = Math.floor(((h+1)%24)/2);
+  return JIJI[bi] + '시';
+}
+
+/* ═══════════════════════════════════════════════
+   APP STATE
+═══════════════════════════════════════════════ */
+const S = {
+  apiKey:    '',
+  birthDate: '',
+  birthTime: '',
+  card:      null,
+  reversed:  false,
+  fortune:   null,
+};
+
+/* ═══════════════════════════════════════════════
+   CACHE
+═══════════════════════════════════════════════ */
+function cacheKey() {
+  return `tarot_${S.birthDate}_${new Date().toISOString().split('T')[0]}`;
+}
+function loadCache() {
+  try { return JSON.parse(localStorage.getItem(cacheKey())); } catch { return null; }
+}
+function saveCache(data) {
+  localStorage.setItem(cacheKey(), JSON.stringify(data));
+}
+
+/* ═══════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ═══════════════════════════════════════════════
+   API KEY (OBFUSCATED)
+═══════════════════════════════════════════════ */
+(function () {
+  const _s = [83,147,201,44,178,67,29,115,240,88,13,199,55,122,166,31];
+  const _e = 'IPjkTdw3MBKAMT30GhvBKBr+pFjoE1ASszE+iUM9yGgR9fFl+zslFcQiapJlV+5vA97/Yuh6czvHC2j3Dy2UfCn1pUXbe1AVyBo9oAAP6mcV9KEd4QpVNrgNZaoADsxGOvuIAdkxaiekCUyG';
+  const raw = atob(_e);
+  S.apiKey  = Array.from(raw).map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ _s[i % _s.length])).join('');
+})();
+
+/* ═══════════════════════════════════════════════
+   BIRTH SCREEN
+═══════════════════════════════════════════════ */
+/* ─── 입력 정보 기억 ─── */
+const REMEMBER_KEY = 'tarot_remember_birth';
+
+function toggleRemember(checked) {
+  if (!checked) localStorage.removeItem(REMEMBER_KEY);
+}
+
+function loadRememberedBirth() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(REMEMBER_KEY) || 'null');
+    if (!saved) return;
+    document.getElementById('birthDateInput').value = saved.date || '';
+    document.getElementById('birthTimeInput').value = saved.time || '';
+    document.getElementById('rememberBirth').checked = true;
+  } catch(e) {}
+}
+loadRememberedBirth();
+
+function handleBirth() {
+  const date = document.getElementById('birthDateInput').value;
+  const time = document.getElementById('birthTimeInput').value;
+  const err  = document.getElementById('birthError');
+  const remember = document.getElementById('rememberBirth').checked;
+
+  if (!date) {
+    err.textContent = '생년월일을 입력해주세요.';
+    err.classList.add('show');
+    return;
+  }
+  err.classList.remove('show');
+
+  if (remember) {
+    localStorage.setItem(REMEMBER_KEY, JSON.stringify({ date, time }));
+  } else {
+    localStorage.removeItem(REMEMBER_KEY);
+  }
+
+  S.birthDate = date;
+  S.birthTime = time;
+
+  const cached = loadCache();
+  if (cached) {
+    S.card = cached.card; S.reversed = cached.reversed; S.fortune = cached.fortune;
+    renderResults();
+    showScreen('screen-results');
+    return;
+  }
+
+  initSpread();
+  showScreen('screen-cards');
+}
+
+/* ═══════════════════════════════════════════════
+   CARD DECK & REVEAL
+═══════════════════════════════════════════════ */
+let picking = true;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const FAN_COUNT   = 15;
+const FAN_MIN_DEG = -90;
+const FAN_MAX_DEG =  90;
+
+function initSpread() {
+  picking = true;
+  renderFan();
+}
+
+function renderFan() {
+  const container = document.getElementById('fanContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < FAN_COUNT; i++) {
+    const rot = FAN_MIN_DEG + (i / (FAN_COUNT - 1)) * (FAN_MAX_DEG - FAN_MIN_DEG);
+    // z-index: center card on top, edges behind
+    const mid = (FAN_COUNT - 1) / 2;
+    const zi  = FAN_COUNT - Math.round(Math.abs(i - mid));
+    const arm = document.createElement('div');
+    arm.className = 'fan-arm';
+    arm.style.cssText = `--rot:${rot.toFixed(1)}deg; z-index:${zi}`;
+    arm.innerHTML = `<div class="fan-card"><span class="fan-card-sym">✦</span></div>`;
+    arm.addEventListener('click', () => drawCard(arm));
+    container.appendChild(arm);
+  }
+}
+
+function drawCard(armEl) {
+  if (!picking) return;
+  picking = false;
+
+  // Pick a random card from the full 78-card deck
+  const randomized = shuffle(TAROT);
+  S.card     = randomized[0];
+  S.reversed = Math.random() < 0.4;
+
+  // Sparkle burst from the clicked card face center
+  const cardFace = armEl.querySelector('.fan-card');
+  const rect = cardFace.getBoundingClientRect();
+  fireSparkles(rect.left + rect.width / 2, rect.top + rect.height / 2, 24);
+
+  // Brief delay then open overlay
+  setTimeout(() => openRevealOverlay(S.card, S.reversed), 360);
+}
+
+function fireSparkles(cx, cy, count) {
+  const GLYPHS  = ['✦','✧','✨','⭐','★','💫','✵','◆'];
+  const COLORS  = ['#c9a84c','#e8c66a','#ffffff','#d4a0ff','#88ccff'];
+  count = count || 26;
+  for (let i = 0; i < count; i++) {
+    const el    = document.createElement('span');
+    el.className = 'spark';
+    const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+    const dist  = 55 + Math.random() * 140;
+    const dur   = (0.5 + Math.random() * 0.6).toFixed(2) + 's';
+    const sz    = (0.7 + Math.random() * 1.1).toFixed(2) + 'em';
+    const rot   = (Math.random() * 720 - 360).toFixed(0) + 'deg';
+    el.textContent = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+    el.style.cssText = [
+      `left:${cx}px`, `top:${cy}px`,
+      `--x:${(Math.cos(angle) * dist).toFixed(1)}px`,
+      `--y:${(Math.sin(angle) * dist).toFixed(1)}px`,
+      `--d:${dur}`, `--s:${sz}`, `--r:${rot}`,
+      `color:${COLORS[Math.floor(Math.random() * COLORS.length)]}`,
+    ].join(';');
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), parseFloat(dur) * 1000 + 100);
+  }
+}
+
+function openRevealOverlay(card, reversed) {
+  const overlay = document.getElementById('cardRevealOverlay');
+  const rc      = document.getElementById('revealCard');
+  const front   = document.getElementById('revealFront');
+  const nameEl  = document.getElementById('revealCardName');
+  const subEl   = document.getElementById('revealSub');
+  const btn     = document.getElementById('revealProceedBtn');
+
+  // Reset
+  rc.classList.remove('do-flip');
+  nameEl.classList.remove('visible');
+  subEl.classList.remove('visible');
+  btn.classList.remove('visible');
+
+  // Set card front image
+  front.className = 'reveal-front' + (reversed ? ' reversed' : '');
+  front.innerHTML = `<img src="${cardImg(card)}" alt="${card.name}"
+    onerror="this.outerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:10px;padding:10px\\'><span style=\\'font-size:3.5em\\'>${card.sym}</span><span style=\\'color:#c9a84c;font-size:0.82em;text-align:center;font-weight:700\\'>${card.name}</span></div>'">`
+
+  nameEl.textContent = `${card.name}  ·  ${card.en}`;
+  subEl.textContent  = `${card.type}  ·  ${reversed ? '↕ 역방향' : '↑ 정방향'}`;
+
+  // Show overlay
+  overlay.classList.add('show');
+
+  // Trigger flip animation on next paint
+  requestAnimationFrame(() => requestAnimationFrame(() => rc.classList.add('do-flip')));
+
+  // Staggered reveal of text & button
+  setTimeout(() => nameEl.classList.add('visible'), 950);
+  setTimeout(() => subEl.classList.add('visible'),  1150);
+  setTimeout(() => btn.classList.add('visible'),    1380);
+
+  // Second sparkle burst when card face appears
+  setTimeout(() => {
+    const r = rc.getBoundingClientRect();
+    fireSparkles(r.left + r.width / 2, r.top + r.height / 2, 20);
+  }, 730);
+}
+
+function proceedToFortune() {
+  document.getElementById('cardRevealOverlay').classList.remove('show');
+  showScreen('screen-loading');
+  generateFortune();
+}
+
+function reshuffleCards() { /* no-op — full deck always shown */ }
+
+/* ═══════════════════════════════════════════════
+   FORTUNE GENERATION
+═══════════════════════════════════════════════ */
+const LOAD_TEXTS = [
+  '사주를 계산하는 중...',
+  '별자리 에너지를 읽는 중...',
+  '타로 카드의 비밀을 해석하는 중...',
+  '오늘의 운세를 점치는 중...',
+  '우주의 메시지를 전달받는 중...',
+];
+let loadInterval;
+
+function startLoading() {
+  let i = 0;
+  const el = document.getElementById('loadingText');
+  el.textContent = LOAD_TEXTS[0];
+  loadInterval = setInterval(() => { i=(i+1)%LOAD_TEXTS.length; el.textContent = LOAD_TEXTS[i]; }, 1800);
+}
+function stopLoading() { clearInterval(loadInterval); }
+
+async function generateFortune() {
+  startLoading();
+  const [y, m, d] = S.birthDate.split('-').map(Number);
+  const zodiac = getZodiac(m, d);
+  const animal = getAnimal(y);
+  const yp     = yearPillar(y);
+  const dp     = dayPillar(y, m, d);
+  const card   = S.card;
+  const rev    = S.reversed;
+  const today  = new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'long'});
+
+  let saju = `연주(年柱): ${yp}\n일주(日柱): ${dp}`;
+  if (S.birthTime) {
+    const [h] = S.birthTime.split(':').map(Number);
+    saju += `\n시주(時柱): ${hourPillar(h)}\n태어난 시각: ${S.birthTime}`;
+  }
+
+  const prompt = `당신은 동서양의 사주·별자리·타로를 통합하는 운세 마스터입니다.
+아래 정보를 바탕으로 오늘의 운세를 한국어로 작성하세요.
+
+=== 의뢰인 정보 ===
+생년월일: ${S.birthDate}
+${saju}
+별자리: ${zodiac.s} ${zodiac.n}
+띠: ${animal}띠
+오늘 날짜: ${today}
+
+=== 뽑은 타로 카드 ===
+카드: ${card.name} (${card.en}) — ${rev ? '역방향' : '정방향'}
+키워드: ${rev ? card.rev : card.up}
+
+=== 작성 규칙 ===
+- 사주·별자리·타로를 자연스럽게 통합하여 해석할 것
+- 각 항목 2~3문장, 시적이고 깊이 있는 언어 사용
+- 부정적 운도 성장의 관점에서 조언 포함
+- 반드시 아래 JSON 형식으로만 응답 (다른 텍스트 없이)
+
+{
+  "overall": "종합 오늘의 운세 (모든 요소 통합, 160자 내외)",
+  "love": "애정운 (130자 내외)",
+  "money": "금전운 (130자 내외)",
+  "health": "건강운 (130자 내외)",
+  "work": "직업·학업운 (130자 내외)",
+  "advice": "타로 카드가 전하는 오늘의 한마디 (80자 내외, 인용구 형식)",
+  "lucky": {
+    "color": "행운의 색",
+    "number": 7,
+    "direction": "행운의 방향",
+    "item": "행운의 아이템"
+  },
+  "agency": {
+    "overall": "종합광고대행사 직원으로서 오늘 하루의 기운 — 클라이언트·납기·창의성·번아웃 등 전반적 흐름 (120자 내외)",
+    "client": "클라이언트 관계 운 — 오늘 수정 요청·방향 전환·담당자 변수·갑을 구도의 흐름은? 구체적 조언 포함 (100자 내외)",
+    "creative": "크리에이티브·PT 에너지 — 아이디어 발화와 설득력의 기운, 피칭 또는 작업 집중도 예보 (100자 내외)",
+    "team": "팀 내부 협업 운 — AE·크리에이티브·미디어 직군 간 갈등 또는 시너지, 오늘 조직 안에서의 포지셔닝 (100자 내외)",
+    "overtime": "야근 운 — 오늘 퇴근 가능성, 갑작스러운 납기 압박·캠페인 방향 전환 변수, 야근 시 에너지 대처법 포함 (100자 내외)",
+    "burnout": "번아웃 지수 — 오늘 심리적 소진 수준과 회복 가능성, 창의성과 열정을 지키기 위한 구체적 조언 (100자 내외)",
+    "tip": "광고쟁이로서 오늘을 버텨낼 한마디 — 업계 특수성을 녹인 위트 있고 따뜻한 격언 또는 응원 (60자 내외)"
+  }
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': S.apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2200,
+        messages: [{ role: 'user', content: prompt }]
+      }),
+    });
+
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(e.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const raw  = data.content[0].text;
+    const m2   = raw.match(/\{[\s\S]*\}/);
+    if (!m2) throw new Error('응답 파싱 실패');
+
+    S.fortune = JSON.parse(m2[0]);
+    saveCache({ card: S.card, reversed: S.reversed, fortune: S.fortune });
+
+    stopLoading();
+    renderResults();
+    showScreen('screen-results');
+
+  } catch (err) {
+    stopLoading();
+    alert(`오류가 발생했습니다.\n${err.message}\n\nAPI 키와 인터넷 연결을 확인해주세요.`);
+    picking = false;
+    showScreen('screen-cards');
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER RESULTS
+═══════════════════════════════════════════════ */
+function renderResults() {
+  const [y, m, d] = S.birthDate.split('-').map(Number);
+  const zodiac  = getZodiac(m, d);
+  const animal  = getAnimal(y);
+  const yp      = yearPillar(y);
+  const dp      = dayPillar(y, m, d);
+  const card    = S.card;
+  const rev     = S.reversed;
+  const f       = S.fortune;
+  const today   = new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'long'});
+
+  document.getElementById('resultDate').textContent = today;
+
+  // Astro bar
+  let timeHtml = '';
+  if (S.birthTime) {
+    const [h] = S.birthTime.split(':').map(Number);
+    timeHtml = `<span class="astro-pill">⏰ ${hourPillar(h)}</span>`;
+  }
+  document.getElementById('astroBar').innerHTML =
+    `<span class="astro-pill">${zodiac.s} ${zodiac.n}</span>
+     <span class="astro-pill">🐾 ${animal}띠</span>
+     <span class="astro-pill">📅 ${yp} 연주</span>
+     <span class="astro-pill">🌙 ${dp} 일주</span>
+     ${timeHtml}`;
+
+  // Card panel
+  document.getElementById('resultCardPanel').innerHTML = `
+    <div class="result-card-img">
+      <img src="${cardImg(card)}" alt="${card.name}"
+           style="${rev ? 'transform:rotate(180deg)' : ''}"
+           onerror="this.outerHTML='<div style=\\'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:6px;padding:8px\\'><span style=\\'font-size:2em\\'>${card.sym}</span><span style=\\'font-size:0.6em;color:#c9a84c;text-align:center;font-weight:700\\'>${card.name}</span></div>'">
+    </div>
+    <div class="result-card-info">
+      <h3>${card.name} <span style="font-size:.7em;font-weight:300;color:var(--text-dim);">${card.en}</span>
+        ${rev ? '<span class="rev-badge">↕ 역방향</span>' : ''}</h3>
+      <p class="card-type">${card.type}</p>
+      <p class="card-kw">
+        ${rev ? '🔻 역방향' : '🔺 정방향'}: ${rev ? card.rev : card.up}
+      </p>
+      ${f?.advice ? `<p class="card-advice">"${f.advice}"</p>` : ''}
+    </div>`;
+
+  // Fortune grid
+  const sections = [
+    { key:'overall', icon:'✨', title:'종합 오늘의 운세', full:true },
+    { key:'love',    icon:'💞', title:'애정운' },
+    { key:'money',   icon:'💰', title:'금전운' },
+    { key:'health',  icon:'🌿', title:'건강운' },
+    { key:'work',    icon:'💼', title:'직업·학업운' },
+  ];
+  document.getElementById('fortuneGrid').innerHTML = sections.map(s => `
+    <div class="fortune-section ${s.full ? 'fortune-overall' : ''}">
+      <h3>${s.icon} ${s.title}</h3>
+      <p>${f?.[s.key] || '—'}</p>
+    </div>`).join('');
+
+  // Lucky row
+  const lk = f?.lucky || {};
+  document.getElementById('luckyRow').innerHTML = [
+    { l:'행운의 색',   v: lk.color     },
+    { l:'행운의 숫자', v: lk.number    },
+    { l:'행운의 방향', v: lk.direction },
+    { l:'행운의 아이템', v: lk.item    },
+  ].map(i => `
+    <div class="lucky-item">
+      <span class="lucky-label">${i.l}</span>
+      <span class="lucky-value">${i.v ?? '—'}</span>
+    </div>`).join('');
+
+  // Agency section
+  const ag = f?.agency || {};
+  document.getElementById('agencySection').innerHTML = `
+    <div class="agency-header">
+      <h2>🏢 회사에서의 오늘 운세</h2>
+    </div>
+    <div class="agency-overall">${ag.overall || '—'}</div>
+    <div class="agency-grid">
+      <div class="agency-card">
+        <h3>🤝 클라이언트 관계</h3>
+        <p>${ag.client || '—'}</p>
+      </div>
+      <div class="agency-card">
+        <h3>💡 크리에이티브·PT</h3>
+        <p>${ag.creative || '—'}</p>
+      </div>
+      <div class="agency-card">
+        <h3>👥 팀 협업</h3>
+        <p>${ag.team || '—'}</p>
+      </div>
+      <div class="agency-card">
+        <h3>🌙 야근 예보</h3>
+        <p>${ag.overtime || '—'}</p>
+      </div>
+      <div class="agency-card">
+        <h3>🔋 번아웃 지수</h3>
+        <p>${ag.burnout || '—'}</p>
+      </div>
+      <div class="agency-tip">
+        <p class="agency-tip-title">✦ 오늘의 격언 ✦</p>
+        <p class="agency-tip-text">${ag.tip || '—'}</p>
+      </div>
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════
+   MISC
+═══════════════════════════════════════════════ */
+function newReading() {
+  // Clear cache to allow fresh reading
+  localStorage.removeItem(cacheKey());
+  S.card = null; S.fortune = null;
+  picking = true;
+  initSpread();
+  showScreen('screen-cards');
+}
+
+function editBirthInfo() {
+  // 캐시·세션 초기화 후 생년월일 화면으로 — 카드를 새로 뽑을 수 있도록
+  if (S.birthDate) localStorage.removeItem(cacheKey());
+  S.card = null; S.fortune = null;
+  picking = true;
+  showScreen('screen-birth');
+}
+</script>
+</body>
+</html>
