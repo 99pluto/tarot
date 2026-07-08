@@ -160,6 +160,44 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 input[type="date"], input[type="time"] { color-scheme: dark; }
 
+.select-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.mystic-select {
+  flex: 1;
+  background: rgba(10,5,22,0.85);
+  border: var(--border-gold);
+  border-radius: 8px;
+  color: var(--text-bright);
+  font-family: 'Noto Serif KR', serif;
+  font-size: 0.88rem;
+  padding: 10px 28px 10px 10px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23c9a84c'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  text-align: center;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.mystic-select:focus {
+  outline: none;
+  border-color: rgba(201,168,76,0.7);
+  box-shadow: 0 0 0 2px rgba(201,168,76,0.12);
+}
+.mystic-select option {
+  background: #0a0418;
+  color: var(--text-bright);
+}
+.select-year { flex: 1.6; }
+@media (max-width: 420px) {
+  .select-row { flex-wrap: wrap; }
+  .select-year { flex: 1 1 100%; }
+}
+
 .optional-badge {
   font-size: 0.65rem;
   background: rgba(201,168,76,0.12);
@@ -859,12 +897,23 @@ input[type="date"], input[type="time"] { color-scheme: dark; }
   <div class="card-box">
     <div class="input-group">
       <label>생년월일 <span style="color:#f87171">*</span></label>
-      <input type="date" id="birthDateInput" class="mystic-input" />
+      <div class="select-row">
+        <select id="birthYear"  class="mystic-select select-year"></select>
+        <select id="birthMonth" class="mystic-select"></select>
+        <select id="birthDay"   class="mystic-select"></select>
+      </div>
     </div>
     <div class="input-group">
       <label>태어난 시간 <span class="optional-badge">선택</span></label>
-      <input type="time" id="birthTimeInput" class="mystic-input" />
-      <p class="hint">시간을 입력하면 시주(時柱)까지 포함한 더 정확한 사주 해석이 가능합니다</p>
+      <div class="select-row">
+        <select id="birthAmPm"  class="mystic-select">
+          <option value="am">오전</option>
+          <option value="pm">오후</option>
+        </select>
+        <select id="birthHour"   class="mystic-select"></select>
+        <select id="birthMinute" class="mystic-select"></select>
+      </div>
+      <p class="hint">시간을 선택하면 시주(時柱)까지 포함한 더 정확한 사주 해석이 가능합니다</p>
     </div>
     <label class="remember-row">
       <input type="checkbox" id="rememberBirth" onchange="toggleRemember(this.checked)">
@@ -1194,28 +1243,102 @@ function toggleRemember(checked) {
   if (!checked) localStorage.removeItem(REMEMBER_KEY);
 }
 
+/* ─── 셀렉트 박스 초기화 ─── */
+function initBirthSelects() {
+  const now = new Date().getFullYear();
+
+  // 년도 (1940 ~ 현재)
+  const yEl = document.getElementById('birthYear');
+  for (let y = now; y >= 1940; y--) {
+    const o = document.createElement('option');
+    o.value = String(y); o.textContent = `${y}년`;
+    yEl.appendChild(o);
+  }
+  yEl.value = '2000';
+
+  // 월 (1 ~ 12)
+  const mEl = document.getElementById('birthMonth');
+  for (let m = 1; m <= 12; m++) {
+    const o = document.createElement('option');
+    o.value = String(m).padStart(2,'0'); o.textContent = `${m}월`;
+    mEl.appendChild(o);
+  }
+  mEl.value = '01';
+
+  // 일 (1 ~ 31)
+  const dEl = document.getElementById('birthDay');
+  for (let d = 1; d <= 31; d++) {
+    const o = document.createElement('option');
+    o.value = String(d).padStart(2,'0'); o.textContent = `${d}일`;
+    dEl.appendChild(o);
+  }
+  dEl.value = '01';
+
+  // 시 (0 ~ 11)
+  const hEl = document.getElementById('birthHour');
+  for (let h = 0; h <= 11; h++) {
+    const o = document.createElement('option');
+    o.value = String(h); o.textContent = `${h}시`;
+    hEl.appendChild(o);
+  }
+  hEl.value = '0';
+
+  // 분 (00 ~ 55, 5분 단위)
+  const minEl = document.getElementById('birthMinute');
+  for (let m = 0; m < 60; m += 5) {
+    const o = document.createElement('option');
+    const v = String(m).padStart(2,'0');
+    o.value = v; o.textContent = `${v}분`;
+    minEl.appendChild(o);
+  }
+  minEl.value = '00';
+}
+initBirthSelects();
+
+function getBirthDateValue() {
+  const y   = document.getElementById('birthYear').value;
+  const m   = document.getElementById('birthMonth').value;
+  const d   = document.getElementById('birthDay').value;
+  return `${y}-${m}-${d}`;
+}
+
+function getBirthTimeValue() {
+  const ampm = document.getElementById('birthAmPm').value;
+  const h    = parseInt(document.getElementById('birthHour').value);
+  const min  = document.getElementById('birthMinute').value;
+  const h24  = ampm === 'am' ? h : h + 12;
+  return `${String(h24).padStart(2,'0')}:${min}`;
+}
+
 function loadRememberedBirth() {
   try {
     const saved = JSON.parse(localStorage.getItem(REMEMBER_KEY) || 'null');
     if (!saved) return;
-    document.getElementById('birthDateInput').value = saved.date || '';
-    document.getElementById('birthTimeInput').value = saved.time || '';
+    // 날짜 복원
+    const [sy, sm, sd] = (saved.date || '2000-01-01').split('-');
+    document.getElementById('birthYear').value  = sy;
+    document.getElementById('birthMonth').value = sm;
+    document.getElementById('birthDay').value   = sd;
+    // 시간 복원
+    if (saved.time) {
+      const [sh, smin] = saved.time.split(':').map(Number);
+      document.getElementById('birthAmPm').value  = sh < 12 ? 'am' : 'pm';
+      document.getElementById('birthHour').value  = String(sh < 12 ? sh : sh - 12);
+      // 저장된 분을 5분 단위로 반올림
+      const roundedMin = String(Math.round(smin / 5) * 5 % 60).padStart(2,'0');
+      document.getElementById('birthMinute').value = roundedMin;
+    }
     document.getElementById('rememberBirth').checked = true;
   } catch(e) {}
 }
 loadRememberedBirth();
 
 function handleBirth() {
-  const date = document.getElementById('birthDateInput').value;
-  const time = document.getElementById('birthTimeInput').value;
+  const date = getBirthDateValue();
+  const time = getBirthTimeValue();
   const err  = document.getElementById('birthError');
   const remember = document.getElementById('rememberBirth').checked;
 
-  if (!date) {
-    err.textContent = '생년월일을 입력해주세요.';
-    err.classList.add('show');
-    return;
-  }
   err.classList.remove('show');
 
   if (remember) {
