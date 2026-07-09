@@ -490,8 +490,7 @@ input[type="date"], input[type="time"] { color-scheme: dark; }
   animation: bigRevealFlip 1.15s cubic-bezier(0.38, 0, 0.12, 1) forwards;
 }
 @keyframes bigRevealFlip {
-  0%   { transform: scale(0.2) rotateY(0deg);   opacity: 0; }
-  12%  { opacity: 1; }
+  0%   { transform: scale(0.2) rotateY(0deg); }
   44%  { transform: scale(1.0) rotateY(90deg); }
   56%  { transform: scale(1.1) rotateY(90deg); }
   86%  { transform: scale(0.97) rotateY(180deg); }
@@ -1471,7 +1470,7 @@ function openRevealOverlay(card, reversed) {
 
   // Set card front image
   front.className = 'reveal-front' + (reversed ? ' reversed' : '');
-  front.innerHTML = `<img src="${cardImg(card)}" alt="${card.name}"
+  front.innerHTML = `<img src="${cardImg(card)}" alt="${card.name}" referrerpolicy="no-referrer"
     onerror="this.outerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:10px;padding:10px\\'><span style=\\'font-size:3.5em\\'>${card.sym}</span><span style=\\'color:#c9a84c;font-size:0.82em;text-align:center;font-weight:700\\'>${card.name}</span></div>'">`
 
   nameEl.textContent = `${card.name}  ·  ${card.en}`;
@@ -1480,19 +1479,20 @@ function openRevealOverlay(card, reversed) {
   // Show overlay
   overlay.classList.add('show');
 
-  // Trigger flip animation on next paint
-  requestAnimationFrame(() => requestAnimationFrame(() => rc.classList.add('do-flip')));
+  // 오버레이 페이드인(0.45s)이 완료된 후 플립 시작 — opacity 트랜지션 중 preserve-3d 컨텍스트가
+  // 깨지는 브라우저 동작을 방지하기 위해 500ms 지연
+  setTimeout(() => rc.classList.add('do-flip'), 500);
 
-  // Staggered reveal of text & button
-  setTimeout(() => nameEl.classList.add('visible'), 950);
-  setTimeout(() => subEl.classList.add('visible'),  1150);
-  setTimeout(() => btn.classList.add('visible'),    1380);
+  // Staggered reveal of text & button (flip start 500ms 지연에 맞춰 조정)
+  setTimeout(() => nameEl.classList.add('visible'), 1450);
+  setTimeout(() => subEl.classList.add('visible'),  1650);
+  setTimeout(() => btn.classList.add('visible'),    1880);
 
   // Second sparkle burst when card face appears
   setTimeout(() => {
     const r = rc.getBoundingClientRect();
     fireSparkles(r.left + r.width / 2, r.top + r.height / 2, 20);
-  }, 730);
+  }, 1230);
 }
 
 function proceedToFortune() {
@@ -1657,7 +1657,7 @@ function renderResults() {
   // Card panel
   document.getElementById('resultCardPanel').innerHTML = `
     <div class="result-card-img">
-      <img src="${cardImg(card)}" alt="${card.name}"
+      <img src="${cardImg(card)}" alt="${card.name}" referrerpolicy="no-referrer"
            style="${rev ? 'transform:rotate(180deg)' : ''}"
            onerror="this.outerHTML='<div style=\\'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:6px;padding:8px\\'><span style=\\'font-size:2em\\'>${card.sym}</span><span style=\\'font-size:0.6em;color:#c9a84c;text-align:center;font-weight:700\\'>${card.name}</span></div>'">
     </div>
